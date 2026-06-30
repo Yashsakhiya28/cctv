@@ -84,9 +84,9 @@ class _MainCameraControlScreenState extends State<MainCameraControlScreen>
   bool _isRtspStreaming = false;
 
   // P2P UID fields
-  final TextEditingController _uidController = TextEditingController(text: 'A1B2C3D4E5');
-  final TextEditingController _usernameController = TextEditingController(text: 'admin');
-  final TextEditingController _passwordController = TextEditingController(text: '123456');
+  final TextEditingController _uidController = TextEditingController(text: 'C40K4PAYRWT15WJE');
+  final TextEditingController _usernameController = TextEditingController(text: 'ravi');
+  final TextEditingController _passwordController = TextEditingController(text: 'admin');
   
   P2PStatus _p2pStatus = P2PStatus.disconnected;
   String _p2pError = '';
