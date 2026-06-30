@@ -4,6 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_vlc_player/flutter_vlc_player.dart';
 
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(dynamic message) async {
+  // Mock background handler to prevent native execution crash when no top-level symbol is declared.
+}
+
 void main() => runApp(const MyApp());
 
 class MyApp extends StatelessWidget {
@@ -857,38 +862,36 @@ class _MainCameraControlScreenState extends State<MainCameraControlScreen>
     );
   }
 
-  // Interactive UI: P2P live camera simulator frame
+  // Interactive UI: P2P live camera view using PlatformView and telemetry HUD overlays
   Widget _buildP2PStreamSimulator() {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // Native AndroidView rendering the CCTV feed
+        CctvPlayView(uid: _uidController.text),
+        
+        // Graphical overlays (Grid, scanline, camera details watermark)
+        _buildP2PStreamSimulatorOverlays(),
+      ],
+    );
+  }
+
+  Widget _buildP2PStreamSimulatorOverlays() {
     return AnimatedBuilder(
       animation: _scanController,
       builder: (context, child) {
         return Stack(
           fit: StackFit.expand,
           children: [
-            // CCTV Background Pattern
-            Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Color(0xFF02233C),
-                    Color(0xFF081827),
-                    Color(0xFF010A14),
-                  ],
-                ),
-              ),
-            ),
-            
             // Grid Lines Overlay
             CustomPaint(
               painter: GridPainter(),
             ),
 
-            // Mock moving objects or static shapes to feel alive
+            // Center target indicator
             Center(
               child: Opacity(
-                opacity: 0.1,
+                opacity: 0.15,
                 child: Icon(
                   Icons.center_focus_strong,
                   size: 200 * _zoomLevel,
@@ -1155,4 +1158,21 @@ class GridPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+// Native PlatformView for playing the CCTV stream on Android
+class CctvPlayView extends StatelessWidget {
+  final String uid;
+  const CctvPlayView({super.key, required this.uid});
+
+  @override
+  Widget build(BuildContext context) {
+    return AndroidView(
+      viewType: 'cctv_play_view',
+      creationParams: <String, dynamic>{
+        'uid': uid,
+      },
+      creationParamsCodec: const StandardMessageCodec(),
+    );
+  }
 }

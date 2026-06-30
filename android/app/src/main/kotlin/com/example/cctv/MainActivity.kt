@@ -11,6 +11,12 @@ class MainActivity : FlutterActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
+        // Register native CCTV stream PlatformView
+        flutterEngine.platformViewsController.registry.registerViewFactory(
+            "cctv_play_view",
+            CctvPlayViewFactory()
+        )
+
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
             if (call.method == "connectCamera") {
                 val uid = call.argument<String>("uid")
