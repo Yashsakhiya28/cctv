@@ -343,188 +343,232 @@ class _MainCameraControlScreenState extends State<MainCameraControlScreen>
         elevation: 0,
         backgroundColor: const Color(0xFF0F172A),
       ),
-      body: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth >= 800;
+          if (isWide) {
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: _buildConfigSidebar(),
+                ),
+                Expanded(
+                  flex: 3,
+                  child: _buildMainView(),
+                ),
+              ],
+            );
+          } else {
+            return _buildMobileLayout();
+          }
+        },
+      ),
+    );
+  }
+
+  Widget _buildConfigSidebar() {
+    return Container(
+      color: const Color(0xFF0F172A),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildConnectionModeSwitcher(),
+            const SizedBox(height: 20),
+            _connectionMode == ConnectionMode.p2pUID
+                ? _buildP2PConfigPanel()
+                : _buildRtspConfigPanel(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildConnectionModeSwitcher() {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E293B),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.all(4.0),
+      child: Row(
         children: [
-          // Sidebar configuration panel (Left)
           Expanded(
-            flex: 2,
-            child: Container(
-              color: const Color(0xFF0F172A),
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Connection mode switcher
-                    Container(
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1E293B),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: const EdgeInsets.all(4.0),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: InkWell(
-                              onTap: () {
-                                if (_p2pStatus == P2PStatus.streaming || _p2pStatus == P2PStatus.connected) {
-                                  _disconnectP2P();
-                                }
-                                setState(() => _connectionMode = ConnectionMode.p2pUID);
-                              },
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: _connectionMode == ConnectionMode.p2pUID
-                                      ? const Color(0xFF0EA5E9)
-                                      : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                padding: const EdgeInsets.symmetric(vertical: 10),
-                                alignment: Alignment.center,
-                                child: Text(
-                                  'P2P UID',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: _connectionMode == ConnectionMode.p2pUID ? Colors.white : Colors.white70,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: InkWell(
-                              onTap: () {
-                                if (_isRtspStreaming) {
-                                  _stopRtspStream();
-                                }
-                                setState(() => _connectionMode = ConnectionMode.easy4ipRTSP);
-                              },
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: _connectionMode == ConnectionMode.easy4ipRTSP
-                                      ? const Color(0xFF0EA5E9)
-                                      : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                padding: const EdgeInsets.symmetric(vertical: 10),
-                                alignment: Alignment.center,
-                                child: Text(
-                                  'Easy4ip RTSP',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: _connectionMode == ConnectionMode.easy4ipRTSP ? Colors.white : Colors.white70,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    
-                    // Render Active Configuration Panel
-                    _connectionMode == ConnectionMode.p2pUID
-                        ? _buildP2PConfigPanel()
-                        : _buildRtspConfigPanel(),
-                  ],
+            child: InkWell(
+              onTap: () {
+                if (_p2pStatus == P2PStatus.streaming || _p2pStatus == P2PStatus.connected) {
+                  _disconnectP2P();
+                }
+                setState(() => _connectionMode = ConnectionMode.p2pUID);
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  color: _connectionMode == ConnectionMode.p2pUID
+                      ? const Color(0xFF0EA5E9)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                alignment: Alignment.center,
+                child: Text(
+                  'P2P UID',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: _connectionMode == ConnectionMode.p2pUID ? Colors.white : Colors.white70,
+                  ),
                 ),
               ),
             ),
           ),
-          
-          // Live Video + Terminal Log Panel (Right)
           Expanded(
-            flex: 3,
-            child: Container(
-              decoration: const BoxDecoration(
-                border: Border(
-                  left: BorderSide(color: Color(0xFF334155), width: 1),
+            child: InkWell(
+              onTap: () {
+                if (_isRtspStreaming) {
+                  _stopRtspStream();
+                }
+                setState(() => _connectionMode = ConnectionMode.easy4ipRTSP);
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  color: _connectionMode == ConnectionMode.easy4ipRTSP
+                      ? const Color(0xFF0EA5E9)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                color: Color(0xFF090D16),
-              ),
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  // Video Screen
-                  Expanded(
-                    flex: 6,
-                    child: _buildVideoFrame(),
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                alignment: Alignment.center,
+                child: Text(
+                  'Easy4ip RTSP',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: _connectionMode == ConnectionMode.easy4ipRTSP ? Colors.white : Colors.white70,
                   ),
-                  const SizedBox(height: 16),
-                  
-                  // Console Output Log
-                  Expanded(
-                    flex: 4,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF020617),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: const Color(0xFF1E293B)),
-                      ),
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                'NATIVE VENDOR SDK LOGS',
-                                style: TextStyle(
-                                  color: Colors.greenAccent,
-                                  fontFamily: 'monospace',
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
-                                ),
-                              ),
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.greenAccent.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                child: const Text(
-                                  'ACTIVE',
-                                  style: TextStyle(
-                                    color: Colors.greenAccent,
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              )
-                            ],
-                          ),
-                          const Divider(color: Color(0xFF1E293B)),
-                          Expanded(
-                            child: ListView.builder(
-                              controller: _consoleScrollController,
-                              itemCount: _consoleLogs.length,
-                              itemBuilder: (context, index) {
-                                return Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 2.0),
-                                  child: Text(
-                                    _consoleLogs[index],
-                                    style: const TextStyle(
-                                      fontFamily: 'monospace',
-                                      color: Colors.white70,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildMainView() {
+    return Container(
+      decoration: const BoxDecoration(
+        border: Border(
+          left: BorderSide(color: Color(0xFF334155), width: 1),
+        ),
+        color: Color(0xFF090D16),
+      ),
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          Expanded(
+            flex: 6,
+            child: _buildVideoFrame(),
+          ),
+          const SizedBox(height: 16),
+          Expanded(
+            flex: 4,
+            child: _buildConsoleLogsView(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildConsoleLogsView() {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF020617),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFF1E293B)),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'NATIVE VENDOR SDK LOGS',
+                style: TextStyle(
+                  color: Colors.greenAccent,
+                  fontFamily: 'monospace',
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.greenAccent.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                child: const Text(
+                  'ACTIVE',
+                  style: TextStyle(
+                    color: Colors.greenAccent,
+                    fontSize: 9,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              )
+            ],
+          ),
+          const Divider(color: Color(0xFF1E293B)),
+          Expanded(
+            child: ListView.builder(
+              controller: _consoleScrollController,
+              itemCount: _consoleLogs.length,
+              itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2.0),
+                  child: Text(
+                    _consoleLogs[index],
+                    style: const TextStyle(
+                      fontFamily: 'monospace',
+                      color: Colors.white70,
+                      fontSize: 12,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileLayout() {
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            AspectRatio(
+              aspectRatio: 16 / 9,
+              child: _buildVideoFrame(),
+            ),
+            const SizedBox(height: 12),
+            _buildConnectionModeSwitcher(),
+            const SizedBox(height: 12),
+            _connectionMode == ConnectionMode.p2pUID
+                ? _buildP2PConfigPanel()
+                : _buildRtspConfigPanel(),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 220,
+              child: _buildConsoleLogsView(),
+            ),
+          ],
+        ),
       ),
     );
   }
